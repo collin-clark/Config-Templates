@@ -1,0 +1,81 @@
+
+object-group network BGP_LOCAL_IP 
+ host 300.200.100.130
+ !
+object-group network BGP_NEIGHBOR_IP 
+ host 300.200.100.129
+ !
+object-group network PUBLIC_NETWORKS 
+ 999.999.999.0 255.255.255.0
+!
+object-group network BLOCK_NETWORKS 
+ 0.0.0.0 255.0.0.0
+ 127.0.0.0 255.0.0.0
+ 10.0.0.0 255.0.0.0
+ 192.168.0.0 255.255.0.0
+ 172.16.0.0 255.255.240.0
+ 192.0.0.0 255.255.255.0
+ 192.0.127.0 255.255.255.0
+ host 255.255.255.255
+ group-object PUBLIC_NETWORKS
+
+object-group service BLOCK_TRACEROUTE 
+ description TCP|UDP Traceroute Ports
+ tcp eq 27665
+ udp eq 31335
+ udp eq 27444
+ udp range 31337 31338
+ tcp eq 16660
+ tcp eq 65000
+ tcp eq 33720
+ tcp eq 39168
+ tcp eq 47017
+ tcp range 6711 6712
+ tcp eq 6776
+ tcp eq 6669
+ tcp eq 222
+ tcp eq 7000
+ tcp eq 65301 
+ 
+object-group network PERMIT_ICMP_TO_HOSTS 
+ host 999.999.999.254
+ 999.999.999.0 255.255.255.240
+ 
+
+ip access-list extended iACL
+ remark Allow BGP 
+ permit tcp object-group BGP_NEIGHBOR_IP eq bgp object-group BGP_LOCAL_IP
+ permit tcp object-group BGP_NEIGHBOR_IP object-group BGP_LOCAL_IP eq bgp
+ remark Block TCP|UDP Traceroute Ports
+ deny object-group BLOCK_TRACEROUTE any any log
+ 51 remark Allow ICMP to specific hosts
+ 52 permit icmp any object-group PERMIT_ICMP_TO_HOSTS echo
+ 53 permit icmp any object-group PERMIT_ICMP_TO_HOSTS echo-reply
+ 54 permit icmp any object-group PERMIT_ICMP_TO_HOSTS unreachable
+ 55 permit icmp any object-group PERMIT_ICMP_TO_HOSTS time-exceeded
+ remark Deny all other ICMP 
+ deny   icmp any any log
+ remark Deny all traffic destined to router interfaces
+ deny   ip any object-group BGP_LOCAL_IP log
+ remark Allow Traffic to Public Network
+ permit ip any object-group PUBLIC_NETWORKS
+ remark Deny all other Traffic
+ deny   ip any any log
+ 
+ip route 0.0.0.0 255.0.0.0 null 0 name BOGON_NETWORK
+ip route 10.0.0.0 255.0.0.0 null 0 name BOGON_NETWORK
+ip route 100.64.0.0 255.192.0.0 null 0 name BOGON_NETWORK
+ip route 127.0.0.0 255.0.0.0 null 0 name BOGON_NETWORK
+ip route 169.254.0.0 255.255.0.0 null 0 name BOGON_NETWORK
+ip route 172.16.0.0 255.240.0.0 null 0 name BOGON_NETWORK
+ip route 192.0.0.0 255.255.255.0 null 0 name BOGON_NETWORK
+ip route 192.0.2.0 255.255.255.0 null 0 name BOGON_NETWORK
+ip route 192.168.0.0 255.255.0.0 null 0 name BOGON_NETWORK
+ip route 198.18.0.0 255.254.0.0 null 0 name BOGON_NETWORK
+ip route 198.51.100.0 255.255.255.0 null 0 name BOGON_NETWORK
+ip route 203.0.113.0 255.255.255.0 null 0 name BOGON_NETWORK
+ip route 224.0.0.0 240.0.0.0 null 0 name BOGON_NETWORK
+ip route 240.0.0.0 240.0.0.0 null 0 name BOGON_NETWORK 
+ 
+ 
+ 

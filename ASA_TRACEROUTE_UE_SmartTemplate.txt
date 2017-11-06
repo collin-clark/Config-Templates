@@ -1,0 +1,14 @@
+! Allow traceroute though the ASA
+access-list [+ACL Applied to Outside Interface+] extended permit icmp any any time-exceeded
+access-list [+ACL Applied to Outside Interface+] extended permit icmp any any unreachable
+access-list [+ACL Applied to Outside Interface+] extended permit icmp any any echo-reply
+icmp unreachable rate-limit 10 burst-size 5
+
+
+policy-map global_policy
+ class class-default
+  set connection decrement-ttl
+  
+! If running IPS or IP Audit Attack Policy disable the LAND Attack signature
+ip audit signature 1102 disable  
+  

@@ -1,0 +1,197 @@
+conf t
+no service pad
+no service config
+no service finger
+no ip icmp redirect
+no ip finger
+no ip gratuitous-arps
+no ip source-route
+service sequence-numbers
+service tcp-keepalives-in
+service tcp-keepalives-out
+service timestamps debug datetime localtime show-timezone
+service timestamps log datetime localtime show-timezone
+service password-encryption
+!
+hostname [+HOSTNAME+]
+ip domain-name [+DOMAIN NAME+]
+crypto key generate rsa label SSH-KEY modulus 2048
+!
+!
+logging buffered 8096 debug
+enable secret [+SECRET PASSWORD+]
+!
+aaa new-model
+!
+!
+aaa group server radius [+CUSTOMER+]-RADIUS
+ server-private [+RADIUS SERVER 1+] auth-port 1812 acct-port 1813 key [+AAA PSK+]
+ server-private [+RADIUS SERVER 2+] auth-port 1812 acct-port 1813 key [+AAA PSK+]
+! ip vrf forwarding Mgmt-intf
+
+aaa authentication login default local
+aaa authentication login CONSOLE local
+aaa authentication login [+CUSTOMER+]-AAA group [+CUSTOMER+]-RADIUS local
+aaa accounting send stop-record authentication failure
+aaa accounting exec default start-stop group [+CUSTOMER+]-RADIUS
+!
+!
+!
+spanning-tree mode rapid-pvst
+spanning-tree portfast default
+no spanning-tree optimize bpdu transmission
+spanning-tree extend system-id
+errdisable recovery cause all
+errdisable recovery interval 120
+spanning-tree logging
+spanning-tree vlan 1-4094 priority [+0 4096  8192  12288 16384 20480 24576 28672 32768 36864 40960 45056 49152 53248 57344 61440+]
+!
+vtp mode transparent
+!
+aaa session-id common
+clock timezone CST -6 0
+clock summer-time CDT recurring 2 Sun Mar 2:00 1 Sun Nov 2:00
+!
+no ip source-route
+no ip gratuitous-arps
+ip cef
+!
+!
+!
+no ip bootp server
+no ip domain lookup
+!
+!
+username [+LOCAL USERNAME+] privilege 15 secret [+USER PASSWORD+]
+!
+!
+ip tcp synwait-time 5
+ip ssh time-out 60
+ip ssh authentication-retries 2
+ip ssh version 2
+ip ssh rsa keypair-name SSH-KEY
+!
+lldp run
+!
+no ip http server
+no ip http secure-server
+!
+!
+interface Vlan[+MANAGEMENT INTERFACE+]
+ description Management
+ ip address [+IP ADDRESS MASK+]
+ no ip redirects
+ no ip unreachables
+ no ip proxy-arp
+ no ip information-reply
+ no ip mask-reply
+ ip options drop
+!
+!
+ip default-gateway [+GATEWAY+]
+!         
+access-list 10 remark ALLOWED SSH HOSTS/NETWORKS
+access-list 10 permit 10.0.0.0 0.255.255.255
+!
+login quiet-mode access-class 10
+login block-for 300 attempts 6 within 60
+login on-failure log
+!
+ip radius source-interface [+MANAGEMENT INTERFACE+]
+kron occurrence SAVE_CONFIG_SCHED at 23:59 Fri recurring
+policy-list SAVE_CONFIG_WEEKLY
+kron policy-list SAVE_CONFIG_WEEKLY
+cli write mem
+
+!
+logging trap warnings
+logging source-interface [+MANAGEMENT INTERFACE+]
+logging host [+SYSLOG SERVER+]
+!
+!
+snmp-server user admin [+CUSTOMER+]Group v3 auth sha [+PSK 1+] priv aes 128 [+PSK 1+]
+snmp-server group [+CUSTOMER+]Group v3 auth read [+CUSTOMER+]View 
+snmp-server view [+CUSTOMER+]View internet included
+snmp-server view [+CUSTOMER+]View system included
+snmp-server view [+CUSTOMER+]View interfaces included
+snmp-server view [+CUSTOMER+]View chassis included
+snmp-server ifindex persist
+snmp-server trap-source [+MANAGEMENT INTERFACE+]
+snmp-server location [+LOCATION+]
+snmp-server contact [+CONTACT+]
+snmp-server enable traps entity-sensor threshold
+!
+!
+!
+banner exec ^
+****** Your consent to the terms listed above is acknowledged. *******
+^
+banner login ^
+**********************************************************************
+    A T T E N T I O N     A T T E N T I O N     A T T E N T I O N   
+**********************************************************************
+WARNING: This system is for the use of authorized clients only.
+Individuals using the computer network system without authorization,
+or in excess of their authorization, are subject to having all their
+activity on this computer network system monitored and recorded by
+system personnel.  To protect the computer network system from
+unauthorized use and to ensure the computer network systems is
+functioning properly, system administrators monitor this system.
+Anyone using this computer network system expressly consents to such
+monitoring and is advised that if such monitoring reveals possible
+conduct of criminal activity, system personnel may provide the
+evidence of such activity to law enforcement officers.
+          
+Access is restricted to authorized users only. Unauthorized access is
+a violation of state and federal, civil and criminal laws.
+**********************************************************************
+^
+!
+line con 0
+ login authentication CONSOLE
+ transport output ssh
+ logging synchronous
+ exec-timeout 10 0
+line aux 0
+ exec-timeout 0 0
+ no exec
+ transport output none
+line 2
+ no activation-character
+ no exec
+ exec timeout 0 0
+ transport preferred none
+ transport output none
+ stopbits 1
+line vty 0 15
+ session-timeout 10 
+ access-class 10 in
+ exec-timeout 30 0
+ privilege level 15
+ logging synchronous
+ login authentication [+CUSTOMER+]-AAA
+ transport input ssh
+ transport output ssh
+!
+
+ntp authentication-key 123 md5 [+NTP KEY+]
+ntp authenticate
+ntp trusted-key 123
+ntp source [+MANAGEMENT INTERFACE+]
+ntp server [+NTP SERVER 1+] key 123 prefer
+ntp server [+NTP SERVER 2+] key 123
+!
+macro name UNUSED
+default interface $interface
+interface $interface
+description UNUSED PORT
+no macro description
+no switchport
+shutdown
+exit
+@
+
+system mtu jumbo 9198
+
+! Create VLANS
+! Set Switch Priorities

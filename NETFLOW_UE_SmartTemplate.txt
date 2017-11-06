@@ -1,0 +1,40 @@
+flow record [+CUSTOMER+]-Netflow
+ match ipv4 tos
+ match ipv4 protocol
+ match ipv4 source address
+ match ipv4 destination address
+ match transport source-port
+ match transport destination-port
+ collect transport tcp flags
+ collect interface input
+ collect counter bytes long
+ collect counter packets long
+ collect timestamp sys-uptime first
+ collect timestamp sys-uptime last
+ collect application name
+  
+ 
+ flow exporter [+CUSTOMER+]-Netflow
+ destination [+NETFLOW SERVER+]
+ source [+INTERFACE+]
+ transport udp [+NETFLOW PORT+]
+ template data timeout 60
+ export-protocol netflow-v9
+ 
+ 
+flow monitor [+CUSTOMER+]-Netflow
+ exporter [+CUSTOMER+]-Netflow
+ cache timeout active 60
+ record [+CUSTOMER+]-Netflow
+
+
+interface GigabitEthernet 0/0/1
+
+ ip flow monitor [+CUSTOMER+]-Netflow input
+ ip flow monitor [+CUSTOMER+]-Netflow output
+ ip nbar protocol-discovery
+  
+
+ 
+ 
+

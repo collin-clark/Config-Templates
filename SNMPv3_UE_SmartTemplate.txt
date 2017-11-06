@@ -1,0 +1,10 @@
+snmp-server user [+SNMP USER ID+] [+CUSTOMER+]Group v3 auth sha [+SHA PSK+] priv aes 128 [+ENCRYPTION PSK+]
+snmp-server group [+CUSTOMER+]Group v3 auth read [+CUSTOMER+]View 
+snmp-server view [+CUSTOMER+]View internet included
+snmp-server view [+CUSTOMER+]View system included
+snmp-server view [+CUSTOMER+]View interfaces included
+snmp-server view [+CUSTOMER+]View chassis included
+snmp-server ifindex persist
+snmp-server location [+LOCATION+]
+snmp-server contact [+CONTACT NAME+]
+snmp-server enable traps entity-sensor threshold
