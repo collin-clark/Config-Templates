@@ -48,11 +48,11 @@ ip access-list extended iACL
  permit tcp object-group BGP_NEIGHBOR_IP object-group BGP_LOCAL_IP eq bgp
  remark Block TCP|UDP Traceroute Ports
  deny object-group BLOCK_TRACEROUTE any any log
- 51 remark Allow ICMP to specific hosts
- 52 permit icmp any object-group PERMIT_ICMP_TO_HOSTS echo
- 53 permit icmp any object-group PERMIT_ICMP_TO_HOSTS echo-reply
- 54 permit icmp any object-group PERMIT_ICMP_TO_HOSTS unreachable
- 55 permit icmp any object-group PERMIT_ICMP_TO_HOSTS time-exceeded
+ remark Allow ICMP to specific hosts
+ permit icmp any object-group PERMIT_ICMP_TO_HOSTS echo
+ permit icmp any object-group PERMIT_ICMP_TO_HOSTS echo-reply
+ permit icmp any object-group PERMIT_ICMP_TO_HOSTS unreachable
+ permit icmp any object-group PERMIT_ICMP_TO_HOSTS time-exceeded
  remark Deny all other ICMP 
  deny   icmp any any log
  remark Deny all traffic destined to router interfaces
